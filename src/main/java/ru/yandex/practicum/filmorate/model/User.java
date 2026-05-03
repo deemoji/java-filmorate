@@ -14,7 +14,6 @@ public class User {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @NotBlank(message = "Электронная почта обязательна")
     @Email(message = "Электронная почта должна соответствовать формату")
     private String email;
 

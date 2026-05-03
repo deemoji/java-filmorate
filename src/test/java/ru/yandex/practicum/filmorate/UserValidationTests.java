@@ -42,7 +42,7 @@ public class UserValidationTests {
         String message = violations.iterator().next().getMessage();
 
         assertEquals(
-                "Электронная почта обязательна",
+                "Электронная почта должна соответствовать формату",
                 message,
                 "Тип ошибки не соответствует ожидаемому");
     }
