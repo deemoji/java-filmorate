@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.util.Constants;
 import java.util.Collection;
 import java.util.Map;
 import java.util.HashMap;
@@ -45,7 +46,7 @@ public class FilmController {
         long maxId = films.keySet().stream()
                 .mapToLong(id -> id)
                 .max()
-                .orElse(0L);
+                .orElse(Constants.ID_GENERATOR_START_INDEX);
         return ++maxId;
     }
 
