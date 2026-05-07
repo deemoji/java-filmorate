@@ -24,22 +24,15 @@ public class FilmController {
 
     @PostMapping
     public Film createFilm(@Valid @RequestBody Film film) {
+        return saveNewFilm(film);
+    }
+
+    private Film saveNewFilm(Film film) {
         log.info("Создание фильма: {}", film.getName());
 
         film.setId(generateId());
         films.put(film.getId(), film);
         return film;
-    }
-
-    @PutMapping
-    public Film update(@Valid @RequestBody Film newFilm) {
-        log.info("Обновление фильма id={}", newFilm.getId());
-
-        if (!films.containsKey(newFilm.getId())) {
-            throw new NotFoundException("Фильм c Id " + newFilm.getId() + " не найден");
-        }
-        films.put(newFilm.getId(), newFilm);
-        return newFilm;
     }
 
     private Long generateId() {
@@ -48,6 +41,21 @@ public class FilmController {
                 .max()
                 .orElse(Constants.ID_GENERATOR_START_INDEX);
         return ++maxId;
+    }
+
+    @PutMapping
+    public Film update(@Valid @RequestBody Film film) {
+        return updateExistedFilm(film);
+    }
+
+    private Film updateExistedFilm(Film film) {
+        log.info("Обновление фильма id={}", film.getId());
+
+        if (!films.containsKey(film.getId())) {
+            throw new NotFoundException("Фильм c Id " + film.getId() + " не найден");
+        }
+        films.put(film.getId(), film);
+        return film;
     }
 
 }

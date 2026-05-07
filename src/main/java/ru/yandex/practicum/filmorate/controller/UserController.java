@@ -24,24 +24,16 @@ public class UserController {
 
     @PostMapping
     public User createUser(@Valid @RequestBody User user) {
+        return saveNewUser(user);
+    }
+
+    private User saveNewUser(User user) {
         log.info("Создание пользователя: {}", user.getName());
 
         user.setId(generateId());
         user.setName(user.getName() == null ? user.getLogin() : user.getName());
         users.put(user.getId(), user);
         return user;
-    }
-
-    @PutMapping
-    public User update(@Valid @RequestBody User newUser) {
-        log.info("Обновление пользователя: {}", newUser.getName());
-
-        if (!users.containsKey(newUser.getId())) {
-            throw new NotFoundException("Пользователь c Id " + newUser.getId() + " не найден");
-        }
-        newUser.setName(newUser.getName() == null ? newUser.getLogin() : newUser.getName());
-        users.put(newUser.getId(), newUser);
-        return newUser;
     }
 
     private Long generateId() {
@@ -52,4 +44,19 @@ public class UserController {
         return ++maxId;
     }
 
+    @PutMapping
+    public User update(@Valid @RequestBody User user) {
+        return updateExistedUser(user);
+    }
+
+    private User updateExistedUser(User user) {
+        log.info("Обновление пользователя: {}", user.getName());
+
+        if (!users.containsKey(user.getId())) {
+            throw new NotFoundException("Пользователь c Id " + user.getId() + " не найден");
+        }
+        user.setName(user.getName() == null ? user.getLogin() : user.getName());
+        users.put(user.getId(), user);
+        return user;
+    }
 }
