@@ -2,61 +2,66 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.util.Constants;
+import ru.yandex.practicum.filmorate.service.UserService;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
-    private final Map<Long, User> users = new HashMap<>();
+    private final UserService service;
+
+    @Autowired
+    public UserController(UserService service) {
+        this.service = service;
+    }
 
     @GetMapping
     public Collection<User> getUsers() {
-        return users.values();
+        return service.getAllUsers();
+    }
+
+    @GetMapping("/{id}")
+    public User getUser(@PathVariable long id) {
+        return service.getUser(id);
     }
 
     @PostMapping
     public User createUser(@Valid @RequestBody User user) {
-        return saveNewUser(user);
-    }
-
-    private User saveNewUser(User user) {
         log.info("Создание пользователя: {}", user.getName());
-
-        user.setId(generateId());
-        user.setName(user.getName() == null ? user.getLogin() : user.getName());
-        users.put(user.getId(), user);
-        return user;
-    }
-
-    private Long generateId() {
-        long maxId = users.keySet().stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(Constants.ID_GENERATOR_START_INDEX);
-        return ++maxId;
+        return service.createUser(user);
     }
 
     @PutMapping
     public User update(@Valid @RequestBody User user) {
-        return updateExistedUser(user);
-    }
-
-    private User updateExistedUser(User user) {
         log.info("Обновление пользователя: {}", user.getName());
-
-        if (!users.containsKey(user.getId())) {
-            throw new NotFoundException("Пользователь c Id " + user.getId() + " не найден");
-        }
-        user.setName(user.getName() == null ? user.getLogin() : user.getName());
-        users.put(user.getId(), user);
-        return user;
+        return service.updateUser(user);
     }
+
+    @GetMapping("/{id}/friends")
+    public Collection<User> getUserFriends(@PathVariable long id) {
+        return service.getUserFriends(id);
+    }
+
+    @PutMapping("/{userId}/friends/{friendId}")
+    public void addFriendToUser(@PathVariable long userId, @PathVariable long friendId) {
+        log.info("Добавление пользователю {} в друзья: {}", userId, friendId);
+        service.addFriendToUser(userId, friendId);
+    }
+
+    @DeleteMapping("/{userId}/friends/{friendId}")
+    public void deleteFriendFromUser(@PathVariable long userId, @PathVariable long friendId) {
+        log.info("Удаление у пользователя {} друга: {}", userId, friendId);
+        service.deleteFriendFromUser(userId, friendId);
+    }
+
+    @GetMapping("/{userIdOne}/friends/common/{userIdTwo}")
+    public Collection<User> getCommonFriends(@PathVariable long userIdOne, @PathVariable  long userIdTwo) {
+        return service.getCommonFriends(userIdOne, userIdTwo);
+    }
+
 }

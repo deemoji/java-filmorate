@@ -6,8 +6,10 @@ import java.util.Collection;
 
 public interface UserStorage {
     Collection<User> getUsers();
-    User getUser(Long id);
-    boolean contains(Long id);
+
+    User getUser(long id);
+
+    boolean contains(long id);
+
     void saveOrUpdate(User user);
-    void delete(Long id);
 }

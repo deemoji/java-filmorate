@@ -18,12 +18,12 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User getUser(Long id) {
+    public User getUser(long id) {
         return users.get(id);
     }
 
     @Override
-    public boolean contains(Long id) {
+    public boolean contains(long id) {
         return users.containsKey(id);
     }
 
@@ -32,8 +32,4 @@ public class InMemoryUserStorage implements UserStorage {
         users.put(user.getId(), user);
     }
 
-    @Override
-    public void delete(Long id) {
-        users.remove(id);
-    }
 }

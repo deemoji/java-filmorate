@@ -34,6 +34,13 @@ public class UserService {
         return userStorage.getUsers();
     }
 
+    public User getUser(Long id) {
+        if (userStorage.contains(id)) {
+            return userStorage.getUser(id);
+        }
+        throw new NotFoundException("Пользователь c Id " + id + " не найден");
+    }
+
     public User updateUser(User user) {
         if (userStorage.contains(user.getId())) {
             user.setName(user.getName() == null ? user.getLogin() : user.getName());
@@ -41,15 +48,6 @@ public class UserService {
             return user;
         }
         throw new NotFoundException("Пользователь c Id " + user.getId() + " не найден");
-    }
-
-    public User deleteUser(Long id) {
-        if (userStorage.contains(id)) {
-            User user = userStorage.getUser(id);
-            userStorage.delete(id);
-            return user;
-        }
-        throw new NotFoundException("Пользователь c Id " + id + " не найден");
     }
 
     public void addFriendToUser(Long userId, Long friendId) {
@@ -64,17 +62,26 @@ public class UserService {
     }
 
     public Collection<User> getUserFriends(Long userId) {
-        Collection<Long> friends = friendshipStorage.getUserFriends(userId);
-        return friends.stream()
-                .map(userStorage::getUser)
-                .collect(Collectors.toSet());
+        if (userStorage.contains(userId)) {
+            Collection<Long> friends = friendshipStorage.getUserFriends(userId);
+            return friends.stream()
+                    .map(userStorage::getUser)
+                    .collect(Collectors.toSet());
+        }
+        throw new NotFoundException("Пользователь c Id " + userId + " не найден");
     }
 
     public Collection<User> getCommonFriends(Long firstUserId, Long secondUserId) {
-        Collection<Long> commonFriends = friendshipStorage.getCommonFriends(firstUserId, secondUserId);
-        return commonFriends.stream()
-                .map(userStorage::getUser)
-                .collect(Collectors.toSet());
+        if (userStorage.contains(firstUserId)) {
+            if (userStorage.contains(secondUserId)) {
+                Collection<Long> commonFriends = friendshipStorage.getCommonFriends(firstUserId, secondUserId);
+                return commonFriends.stream()
+                        .map(userStorage::getUser)
+                        .collect(Collectors.toSet());
+            }
+            throw new NotFoundException("Пользователь c Id " + secondUserId + " не найден");
+        }
+        throw new NotFoundException("Пользователь c Id " + firstUserId + " не найден");
     }
 
     public void deleteFriendFromUser(Long userId, Long friendId) {
@@ -89,8 +96,8 @@ public class UserService {
     }
 
     private Long generateId() {
-        long maxId = users.keySet().stream()
-                .mapToLong(id -> id)
+        long maxId = userStorage.getUsers().stream()
+                .mapToLong(User::getId)
                 .max()
                 .orElse(Constants.ID_GENERATOR_START_INDEX);
         return ++maxId;
