@@ -2,10 +2,12 @@ package ru.yandex.practicum.filmorate.storage;
 
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.util.Constants;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
@@ -18,18 +20,28 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film getFilm(long id) {
-        return films.get(id);
+    public Optional<Film> getFilm(long id) {
+        return Optional.ofNullable(films.get(id));
     }
 
     @Override
-    public void saveOrUpdate(Film film) {
+    public Film save(Film film) {
+        film.setId(generateId());
         films.put(film.getId(), film);
+        return film;
     }
 
     @Override
-    public boolean contains(long id) {
-        return films.containsKey(id);
+    public Film update(Film film) {
+        films.put(film.getId(), film);
+        return film;
     }
 
+    private Long generateId() {
+        long maxId = films.values().stream()
+                .mapToLong(Film::getId)
+                .max()
+                .orElse(Constants.ID_GENERATOR_START_INDEX);
+        return ++maxId;
+    }
 }

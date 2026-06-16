@@ -1,11 +1,18 @@
 package ru.yandex.practicum.filmorate;
 
-import jakarta.validation.*;
-import org.junit.jupiter.api.*;
-import static org.junit.jupiter.api.Assertions.*;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.dto.NewUserRequest;
+
 import java.time.LocalDate;
 import java.util.Set;
-import ru.yandex.practicum.filmorate.model.User;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class UserValidationTests {
 
@@ -25,19 +32,19 @@ public class UserValidationTests {
 
     @Test
     public void shouldPassWhenEmailIsValid() {
-        User user = new User();
+        NewUserRequest user = new NewUserRequest();
         user.setEmail("abc@email.com");
 
-        Set<ConstraintViolation<User>> violations = validator.validateProperty(user, "email");
+        Set<ConstraintViolation<NewUserRequest>> violations = validator.validateProperty(user, "email");
         assertTrue(violations.isEmpty(), "Ожидается отсутствие ошибок валидации поля");
     }
 
     @Test
     public void shouldFailValidationWhenEmailIsBlank() {
-        User user = new User();
+        NewUserRequest user = new NewUserRequest();
         user.setEmail(" ");
 
-        Set<ConstraintViolation<User>> violations = validator.validateProperty(user, "email");
+        Set<ConstraintViolation<NewUserRequest>> violations = validator.validateProperty(user, "email");
         assertFalse(violations.isEmpty(), "Ожидается ошибка валидации");
         String message = violations.iterator().next().getMessage();
 
@@ -49,10 +56,10 @@ public class UserValidationTests {
 
     @Test
     public void shouldFailValidationWhenEmailIsNotCorrect() {
-        User user = new User();
+        NewUserRequest user = new NewUserRequest();
         user.setEmail("some-ema?il@");
 
-        Set<ConstraintViolation<User>> violations = validator.validateProperty(user, "email");
+        Set<ConstraintViolation<NewUserRequest>> violations = validator.validateProperty(user, "email");
         assertFalse(violations.isEmpty(), "Ожидается ошибка валидации");
         String message = violations.iterator().next().getMessage();
 
@@ -64,19 +71,19 @@ public class UserValidationTests {
 
     @Test
     public void shouldPassWhenLoginIsValid() {
-        User user = new User();
+        NewUserRequest user = new NewUserRequest();
         user.setLogin("yuri-gagarin");
 
-        Set<ConstraintViolation<User>> violations = validator.validateProperty(user, "login");
+        Set<ConstraintViolation<NewUserRequest>> violations = validator.validateProperty(user, "login");
         assertTrue(violations.isEmpty(), "Ожидается отсутствие ошибок валидации поля");
     }
 
     @Test
     public void shouldFailValidationWhenLoginIsBlank() {
-        User user = new User();
+        NewUserRequest user = new NewUserRequest();
         user.setLogin(" ");
 
-        Set<ConstraintViolation<User>> violations = validator.validateProperty(user, "login");
+        Set<ConstraintViolation<NewUserRequest>> violations = validator.validateProperty(user, "login");
         assertFalse(violations.isEmpty(), "Ожидается ошибка валидации");
         String message = violations.iterator().next().getMessage();
 
@@ -88,11 +95,13 @@ public class UserValidationTests {
 
     @Test
     public void shouldFailValidationWhenLoginHasWhitespaces() {
-        User user = new User();
+        NewUserRequest user = new NewUserRequest();
         user.setLogin("yuri gagarin");
 
-        Set<ConstraintViolation<User>> propertyViolations = validator.validateProperty(user, "login");
-        Set<ConstraintViolation<User>> allViolations = validator.validate(user);
+        Set<ConstraintViolation<NewUserRequest>> propertyViolations = validator.validateProperty(
+                user, "login"
+        );
+        Set<ConstraintViolation<NewUserRequest>> allViolations = validator.validate(user);
 
         assertTrue(propertyViolations.isEmpty(), "Ожидается отсутствие ошибок валидации поля");
         assertTrue(allViolations.stream().anyMatch(violation ->
@@ -102,19 +111,19 @@ public class UserValidationTests {
 
     @Test
     public void shouldPassWhenBirthdayIsNow() {
-        User user = new User();
+        NewUserRequest user = new NewUserRequest();
         user.setBirthday(LocalDate.now());
 
-        Set<ConstraintViolation<User>> violations = validator.validateProperty(user, "birthday");
+        Set<ConstraintViolation<NewUserRequest>> violations = validator.validateProperty(user, "birthday");
         assertTrue(violations.isEmpty(), "Ожидается отсутствие ошибок валидации поля");
     }
 
     @Test
     public void shouldFailValidationWhenBirthdayIsInFuture() {
-        User user = new User();
+        NewUserRequest user = new NewUserRequest();
         user.setBirthday(LocalDate.now().plusDays(1));
 
-        Set<ConstraintViolation<User>> violations = validator.validateProperty(user, "birthday");
+        Set<ConstraintViolation<NewUserRequest>> violations = validator.validateProperty(user, "birthday");
 
         assertTrue(violations.stream().anyMatch(violation ->
                 violation.getMessage().equals("Дата рождения не может быть в будущем")

@@ -4,8 +4,11 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dto.NewUserRequest;
+import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
+
 import java.util.Collection;
 
 @Slf4j
@@ -31,15 +34,15 @@ public class UserController {
     }
 
     @PostMapping
-    public User createUser(@Valid @RequestBody User user) {
-        log.info("Создание пользователя: {}", user.getName());
-        return service.createUser(user);
+    public User createUser(@Valid @RequestBody NewUserRequest request) {
+        log.info("Создание пользователя: {}", request.getName());
+        return service.createUser(request);
     }
 
     @PutMapping
-    public User update(@Valid @RequestBody User user) {
-        log.info("Обновление пользователя: {}", user.getName());
-        return service.updateUser(user);
+    public User updateUser(@Valid @RequestBody UpdateUserRequest request) {
+        log.info("Обновление пользователя: {}", request.getId());
+        return service.updateUser(request);
     }
 
     @GetMapping("/{id}/friends")
@@ -60,7 +63,7 @@ public class UserController {
     }
 
     @GetMapping("/{userIdOne}/friends/common/{userIdTwo}")
-    public Collection<User> getCommonFriends(@PathVariable long userIdOne, @PathVariable  long userIdTwo) {
+    public Collection<User> getCommonFriends(@PathVariable long userIdOne, @PathVariable long userIdTwo) {
         return service.getCommonFriends(userIdOne, userIdTwo);
     }
 

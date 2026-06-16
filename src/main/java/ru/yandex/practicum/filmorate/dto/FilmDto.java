@@ -1,13 +1,15 @@
-package ru.yandex.practicum.filmorate.model;
+package ru.yandex.practicum.filmorate.dto;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.time.LocalDate;
+import java.util.Collection;
 
 @Data
-public class Film {
-
+public class FilmDto {
     @EqualsAndHashCode.Include
     private Long id;
 
@@ -19,6 +21,7 @@ public class Film {
 
     private Integer duration;
 
-    private Long mpaId;
+    private Mpa mpa;
 
+    private Collection<Genre> genres;
 }
