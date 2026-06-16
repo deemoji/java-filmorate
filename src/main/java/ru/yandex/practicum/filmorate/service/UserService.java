@@ -1,15 +1,18 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dto.NewUserRequest;
+import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
+import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
-import ru.yandex.practicum.filmorate.util.Constants;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -18,88 +21,74 @@ public class UserService {
     private final FriendshipStorage friendshipStorage;
 
     @Autowired
-    public UserService(UserStorage userStorage, FriendshipStorage friendshipStorage) {
+    public UserService(@Qualifier("userDBStorage") UserStorage userStorage,
+                       @Qualifier("friendshipDBStorage") FriendshipStorage friendshipStorage) {
         this.userStorage = userStorage;
         this.friendshipStorage = friendshipStorage;
     }
 
-    public User createUser(User user) {
-        user.setId(generateId());
+    public UserDto createUser(NewUserRequest request) {
+        User user = UserMapper.mapToUser(request);
         user.setName(user.getName() == null ? user.getLogin() : user.getName());
-        userStorage.saveOrUpdate(user);
-        return user;
+        return UserMapper.mapToDto(userStorage.save(user));
     }
 
-    public Collection<User> getAllUsers() {
-        return userStorage.getUsers();
+    public Collection<UserDto> getAllUsers() {
+        return userStorage.getUsers().stream()
+                .map(UserMapper::mapToDto)
+                .toList();
     }
 
-    public User getUser(Long id) {
-        if (userStorage.contains(id)) {
-            return userStorage.getUser(id);
-        }
-        throw new NotFoundException("Пользователь c Id " + id + " не найден");
+    public UserDto getUser(Long id) {
+        return userStorage.getUser(id)
+                .map(UserMapper::mapToDto)
+                .orElseThrow(() -> new NotFoundException("Пользователь c Id " + id + " не найден"));
     }
 
-    public User updateUser(User user) {
-        if (userStorage.contains(user.getId())) {
-            user.setName(user.getName() == null ? user.getLogin() : user.getName());
-            userStorage.saveOrUpdate(user);
-            return user;
-        }
-        throw new NotFoundException("Пользователь c Id " + user.getId() + " не найден");
+    public UserDto updateUser(UpdateUserRequest request) {
+        User updatedUser = userStorage.getUser(request.getId())
+                .map(user -> UserMapper.updateUserFields(user, request))
+                .orElseThrow(() -> new NotFoundException("Пользователь c Id " + request.getId() + " не найден"));
+        updatedUser.setName(updatedUser.getName() == null ? updatedUser.getLogin() : updatedUser.getName());
+        return UserMapper.mapToDto(userStorage.update(updatedUser));
     }
 
     public void addFriendToUser(Long userId, Long friendId) {
-        if (userStorage.contains(userId)) {
-            if (userStorage.contains(friendId)) {
-                friendshipStorage.saveFriends(userId, friendId);
-                return;
-            }
-            throw new NotFoundException("Пользователь c Id " + friendId + " не найден");
-        }
-        throw new NotFoundException("Пользователь c Id " + userId + " не найден");
+        User user = userStorage.getUser(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь c Id " + userId + " не найден"));
+        User friend = userStorage.getUser(friendId)
+                .orElseThrow(() -> new NotFoundException("Пользователь c Id " + friendId + " не найден"));
+
+        friendshipStorage.saveFriends(user.getId(), friend.getId());
     }
 
-    public Collection<User> getUserFriends(Long userId) {
-        if (userStorage.contains(userId)) {
-            Collection<Long> friends = friendshipStorage.getUserFriends(userId);
-            return friends.stream()
-                    .map(userStorage::getUser)
-                    .collect(Collectors.toSet());
-        }
-        throw new NotFoundException("Пользователь c Id " + userId + " не найден");
+    public Collection<UserDto> getUserFriends(Long userId) {
+        User user = userStorage.getUser(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь c Id " + userId + " не найден"));
+
+        return friendshipStorage.getUserFriends(user.getId()).stream()
+                .map(UserMapper::mapToDto)
+                .toList();
     }
 
-    public Collection<User> getCommonFriends(Long firstUserId, Long secondUserId) {
-        if (userStorage.contains(firstUserId)) {
-            if (userStorage.contains(secondUserId)) {
-                Collection<Long> commonFriends = friendshipStorage.getCommonFriends(firstUserId, secondUserId);
-                return commonFriends.stream()
-                        .map(userStorage::getUser)
-                        .collect(Collectors.toSet());
-            }
-            throw new NotFoundException("Пользователь c Id " + secondUserId + " не найден");
-        }
-        throw new NotFoundException("Пользователь c Id " + firstUserId + " не найден");
+    public Collection<UserDto> getCommonFriends(Long firstUserId, Long secondUserId) {
+        User firstUser = userStorage.getUser(firstUserId)
+                .orElseThrow(() -> new NotFoundException("Пользователь c Id " + firstUserId + " не найден"));
+        User secondUser = userStorage.getUser(secondUserId)
+                .orElseThrow(() -> new NotFoundException("Пользователь c Id " + secondUserId + " не найден"));
+
+        return friendshipStorage.getCommonFriends(firstUser.getId(), secondUser.getId()).stream()
+                .map(UserMapper::mapToDto)
+                .toList();
     }
 
     public void deleteFriendFromUser(Long userId, Long friendId) {
-        if (userStorage.contains(userId)) {
-            if (userStorage.contains(friendId)) {
-                friendshipStorage.deleteFriend(userId, friendId);
-                return;
-            }
-            throw new NotFoundException("Пользователь c Id " + friendId + " не найден");
-        }
-        throw new NotFoundException("Пользователь c Id " + userId + " не найден");
+        User user = userStorage.getUser(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь c Id " + userId + " не найден"));
+        User friend = userStorage.getUser(friendId)
+                .orElseThrow(() -> new NotFoundException("Пользователь c Id " + friendId + " не найден"));
+
+        friendshipStorage.deleteFriend(user.getId(), friend.getId());
     }
 
-    private Long generateId() {
-        long maxId = userStorage.getUsers().stream()
-                .mapToLong(User::getId)
-                .max()
-                .orElse(Constants.ID_GENERATOR_START_INDEX);
-        return ++maxId;
-    }
 }

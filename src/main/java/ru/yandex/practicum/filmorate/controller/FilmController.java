@@ -4,7 +4,9 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.dto.NewFilmRequest;
+import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
@@ -22,25 +24,25 @@ public class FilmController {
     }
 
     @GetMapping
-    public Collection<Film> getFilms() {
+    public Collection<FilmDto> getFilms() {
         return service.getAllFilms();
     }
 
     @GetMapping("/{id}")
-    public Film getFilm(@PathVariable long id) {
+    public FilmDto getFilm(@PathVariable long id) {
         return service.getFilm(id);
     }
 
     @PostMapping
-    public Film createFilm(@Valid @RequestBody Film film) {
-        log.info("Создание фильма: {}", film.getName());
-        return service.createFilm(film);
+    public FilmDto createFilm(@Valid @RequestBody NewFilmRequest request) {
+        log.info("Создание фильма: {}", request.getName());
+        return service.createFilm(request);
     }
 
     @PutMapping
-    public Film update(@Valid @RequestBody Film film) {
-        log.info("Обновление фильма: {}", film.getName());
-        return service.updateFilm(film);
+    public FilmDto updateFilm(@Valid @RequestBody UpdateFilmRequest request) {
+        log.info("Обновление фильма: {}", request.getId());
+        return service.updateFilm(request);
     }
 
     @PutMapping("/{id}/like/{userId}")
@@ -56,7 +58,7 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public Collection<Film> getPopularFilms(@RequestParam(required = false, defaultValue = "0") int count) {
+    public Collection<FilmDto> getPopularFilms(@RequestParam(required = false, defaultValue = "0") int count) {
         return service.getTopRatedFilms(count);
     }
 }
