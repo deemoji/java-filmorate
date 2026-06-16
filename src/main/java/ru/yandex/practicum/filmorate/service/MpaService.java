@@ -2,8 +2,9 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dto.MpaDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.mapper.MpaMapper;
 import ru.yandex.practicum.filmorate.storage.MpaStorage;
 
 import java.util.Collection;
@@ -18,12 +19,15 @@ public class MpaService {
         this.storage = storage;
     }
 
-    public Collection<Mpa> getAll() {
-        return storage.getAll();
+    public Collection<MpaDto> getAll() {
+        return storage.getAll().stream()
+                .map(MpaMapper::mapToDto)
+                .toList();
     }
 
-    public Mpa getMpa(long id) {
+    public MpaDto getMpa(long id) {
         return storage.getMpa(id)
+                .map(MpaMapper::mapToDto)
                 .orElseThrow(() -> new NotFoundException("Рейтинг с id " + id + "не найден"));
     }
 }
