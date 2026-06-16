@@ -14,14 +14,14 @@ import java.util.Optional;
 @Repository
 public class GenreDBStorage extends BaseRepository<Genre> implements GenreStorage {
 
-    private final static String FIND_ALL_QUERY = "SELECT * FROM genres";
+    private static final String FIND_ALL_QUERY = "SELECT * FROM genres";
 
-    private final static String INSERT_QUERY = "INSERT INTO films_genres VALUES(?, ?)";
+    private static final String INSERT_QUERY = "INSERT INTO films_genres VALUES(?, ?)";
 
-    private final static String FIND_FILM_GENRES_QUERY = "SELECT * FROM genres WHERE id IN " +
+    private static final String FIND_FILM_GENRES_QUERY = "SELECT * FROM genres WHERE id IN " +
             "(SELECT genre_id FROM films_genres WHERE film_id = ?)";
 
-    private final static String FIND_BY_ID_QUERY = "SELECT * FROM genres WHERE id = ?";
+    private static final String FIND_BY_ID_QUERY = "SELECT * FROM genres WHERE id = ?";
 
     public GenreDBStorage(JdbcTemplate jdbc, RowMapper<Genre> mapper) {
         super(jdbc, mapper);
